@@ -16,67 +16,68 @@ import br.ce.wcaquino.tasksfrontend.model.Todo;
 
 @Controller
 public class TasksController {
-	
+
 	@Value("${backend.host}")
 	private String BACKEND_HOST;
 
 	@Value("${backend.port}")
 	private String BACKEND_PORT;
-	
+
 	@Value("${app.version}")
 	private String VERSION;
-	
+
 	public String getBackendURL() {
 		return "http://" + BACKEND_HOST + ":" + BACKEND_PORT;
 	}
-	
+
 	@GetMapping("")
-	public String index(Model model) {
+	public String index(final Model model) {
 		model.addAttribute("todos", getTodos());
-		if(VERSION.startsWith("build"))
+		if(VERSION.startsWith("build")) {
 			model.addAttribute("version", VERSION);
+		}
 		return "index";
 	}
-	
+
 	@GetMapping("add")
-	public String add(Model model) {
+	public String add(final Model model) {
 		model.addAttribute("todo", new Todo());
 		return "add";
 	}
 
 	@PostMapping("save")
-	public String save(Todo todo, Model model) {
+	public String save(final Todo todo, final Model model) {
 		try {
-			RestTemplate restTemplate = new RestTemplate();
+			final RestTemplate restTemplate = new RestTemplate();
 			restTemplate.postForObject(
-					getBackendURL() + "/tasks-backend/todo", todo, Object.class);			
-			model.addAttribute("sucess", "Sucess!");
+					getBackendURL() + "/tasks-backend/todo", todo, Object.class);
+			model.addAttribute("success", "Success!");
 			return "index";
-		} catch(Exception e) {
-			Pattern compile = Pattern.compile("message\":\"(.*)\",");
-			Matcher m = compile.matcher(e.getMessage());
+		} catch(final Exception e) {
+			final Pattern compile = Pattern.compile("message\":\"(.*)\",");
+			final Matcher m = compile.matcher(e.getMessage());
 			m.find();
 			model.addAttribute("error", m.group(1));
 			model.addAttribute("todo", todo);
-			return "add"; 
+			return "add";
 		} finally {
 			model.addAttribute("todos", getTodos());
 		}
 	}
-	
+
 	@GetMapping("delete/{id}")
-	public String delete(@PathVariable Long id, Model model) {
-		RestTemplate restTemplate = new RestTemplate();
-		restTemplate.delete(getBackendURL() + "/tasks-backend/todo/" + id);			
+	public String delete(@PathVariable final Long id, final Model model) {
+		final RestTemplate restTemplate = new RestTemplate();
+		restTemplate.delete(getBackendURL() + "/tasks-backend/todo/" + id);
 		model.addAttribute("success", "Success!");
 		model.addAttribute("todos", getTodos());
 		return "index";
 	}
 
-	
+
 	@SuppressWarnings("unchecked")
 	private List<Todo> getTodos() {
-		RestTemplate restTemplate = new RestTemplate();
+		final RestTemplate restTemplate = new RestTemplate();
 		return restTemplate.getForObject(
 				getBackendURL() + "/tasks-backend/todo", List.class);
 	}
